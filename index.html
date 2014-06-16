@@ -11,18 +11,19 @@
 <script>
   var generateICS = function() {
 
-    var ics = new ICSGenerator();
-    var date = new Date();
-    date.setDate(date.getDate() + 2);
-    var appointment = {
-      date: date,
-      timeSlot: '3:00pm'
+    var options = {
+      summary: 'My event', 
+      description: 'It\'s definitely a great event!'
     };
-    var calData = ics.setICS(appointment);
+    var startDate = '2014-06-20';
+    var startTime = '21%3A01';
+
+    var ics = new ICSGenerator(startDate, startTime, options);
+
     var a = document.createElement('a');
 
-    a.href = "data:text/calendar," + encodeURIComponent(calData);
-    a.download = 'moveline-appointment.ics';
+    a.href = "data:text/calendar," + encodeURIComponent(ics);
+    a.download = 'my-calendar-event.ics';
     a.click();
   }
 </script>

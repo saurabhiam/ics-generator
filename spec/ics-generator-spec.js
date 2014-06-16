@@ -5,10 +5,10 @@ describe("ICSGenerator", function() {
   });
 
   it("returns false unless an options object is passed", function() {
-    expect(ics.init(1)).toBe(false);
-    expect(ics.init('abc')).toBe(false);
-    expect(ics.init(function(){})).toBe(false);
-    expect(ics.init({})).toBeTruthy;
+    expect(ics.initOptions(1)).toBe(false);
+    expect(ics.initOptions('abc')).toBe(false);
+    expect(ics.initOptions(function(){})).toBe(false);
+    expect(ics.initOptions({})).toBeTruthy;
   });
 
   it("sets options if options are passed", function() {
@@ -26,53 +26,26 @@ describe("ICSGenerator", function() {
     expect(ics.beginFile()).toBe(output);
   });
 
-  // it("ends an ICS file", function() {
-  //   var output = "SUMMARY:A summary\n\rEND:VEVENT\n\rEND:VCALENDAR"
-  //   expect(ics.endFile()).toBe(output);
-  // });
-
   it("gets a start date", function() {
-    var appointment = {date: 'Sat Mar 01 2014 00:00:00 GMT-0800 (PST)'};
-    expect(ics.getStartTimeDate(appointment)).toBe("20140301");
+    expect(ics.formatStartDate('2014-04-20')).toBe('20140420');
   });
 
-  it("gets a start time hour", function() {
-    expect(ics.getStartTimeHour({timeSlot: '5:00am'})).toBe('05');
-    expect(ics.getStartTimeHour({timeSlot: '10:00am'})).toBe('10');
-    expect(ics.getStartTimeHour({timeSlot: '12:00pm'})).toBe('12');
-    expect(ics.getStartTimeHour({timeSlot: '10:00pm'})).toBe('22');
+  it("gets a start time", function() {
+    expect(ics.formatStartTime('21%3A01')).toBe('210100');
   });
 
-  it("gets the start time minutes", function() {
-    expect(ics.getStartTimeMinutes({timeSlot: '5:00am'})).toBe('00');
-    expect(ics.getStartTimeMinutes({timeSlot: '5:15am'})).toBe('15');
-    expect(ics.getStartTimeMinutes({timeSlot: '5:30am'})).toBe('30');
+  it("sets a formatted event start date-time", function() {
+    var expected = "DTSTART;VALUE='DATE-TIME':20140420T210100";
+    var actual = ics.setEventStart('2014-04-20', '21%3A01');
+    expect(actual).toBe(expected);
   });
 
-  it("formats the event start time", function() {
-    var appointment = {
-      date: 'Sat Mar 08 2014 00:00:00 GMT-0800 (PST)',
-      timeSlot: '1:00pm'
-    };
-    var expected = "DTSTART;VALUE='DATE-TIME':20140308T130000";
-    expect(ics.formatDTStart(appointment)).toBe(expected);
+  it("ends an ICS file", function() {
+    var output = "END:VEVENT\n\rEND:VCALENDAR"
+    expect(ics.endFile()).toBe(output);
   });
 
-  it("formats the event end time", function() {
-    var appointment = {
-      date: 'Sat Mar 08 2014 00:00:00 GMT-0800 (PST)',
-      timeSlot: '1:00pm'
-    };
-    var expected = "DTEND;VALUE='DATE-TIME':20140308T133000";
-    expect(ics.formatDTEnd(appointment)).toBe(expected);
-  });
-
-  xit("generates an ICS file", function() {
-    var appointment = {
-      date: 'Sat Mar 08 2014 00:00:00 GMT-0800 (PST)',
-      timeOfDay: 'afternoon',
-      timeSlot: '1:00pm'
-    };
+  it("generates an ICS file", function() {
 
     var expected = [];
     expected.push("BEGIN:VCALENDAR");
@@ -80,15 +53,15 @@ describe("ICSGenerator", function() {
     expected.push("PRODID:-//Apple Inc.//Mac OS X 10.8.2//EN");
     expected.push("CALSCALE:GREGORIAN");
     expected.push("BEGIN:VEVENT");
-    expected.push("DTSTART;VALUE='DATE-TIME':20140308T130000");
-    expected.push("DTEND;VALUE='DATE-TIME':20140308T133000");
-    expected.push('SUMMARY:A summary');
-    expected.push('DESCRIPTION:Your Move Captain will contact you at your scheduled appointment time.');
+    expected.push("DTSTART;VALUE='DATE-TIME':20140420T210100");
+    // expected.push("DTEND;VALUE='DATE-TIME':20140308T133000");
+    // expected.push('SUMMARY:A summary');
+    // expected.push('DESCRIPTION:A description');
     expected.push('END:VEVENT');
     expected.push('END:VCALENDAR');
     expected = expected.join("\n\r");
 
-    expect(ics.setICS(appointment)).toBe(expected);
+    expect(ics.setICS("DTSTART;VALUE='DATE-TIME':20140420T210100")).toBe(expected);
 
   });
 

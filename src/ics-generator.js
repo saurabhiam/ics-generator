@@ -1,8 +1,21 @@
-var ICSGenerator = function(options) {
-    this.init(options);
+var ICSGenerator = function(startDate, startTime, options) {
+
+    this.initOptions(options);
+
+    if (startDate && startTime) {
+        this.setEventStart(startDate, startTime);
+    }
+
+    console.log(this.setICS(this.eventStart));
+
+    this.setICS(this.eventStart);
+
+
+
 };
 
-ICSGenerator.prototype.init = function(options) {
+ICSGenerator.prototype.initOptions = function(options) {
+
     if (typeof options === 'object') {
         this.setOptions(options);
         return;
@@ -32,8 +45,8 @@ ICSGenerator.prototype.beginFile = function() {
 
 ICSGenerator.prototype.endFile = function() {
     var arr = [];
-    arr.push('SUMMARY:' + this.options.summary);
-    arr.push('DESCRIPTION:' + this.options.description);
+    // arr.push('SUMMARY:' + this.options.summary);
+    // arr.push('DESCRIPTION:' + this.options.description);
     arr.push('END:VEVENT');
     arr.push('END:VCALENDAR');
 
@@ -42,73 +55,40 @@ ICSGenerator.prototype.endFile = function() {
     return arr;
 };
 
-ICSGenerator.prototype.getStartTimeDate = function(appointment) {
-    var date = new Date(appointment.date).toJSON();
-    date = date.substring(0, 10).split('-').join('');
-
-    return date;
+ICSGenerator.prototype.formatStartDate = function(startDate) {
+    return startDate.replace(/-/g, '');
 };
 
-ICSGenerator.prototype.getStartTimeHour = function(appointment) {
-    var time;
-    if(appointment.timeSlot.search('pm') !== -1 && 
-        parseInt(appointment.timeSlot) !== 12) {
-        var time = String(12 + parseInt(appointment.timeSlot));
-    } else {
-        var time = String(parseInt(appointment.timeSlot));
-        if(time.length === 1) {
-            time = '0' + time;
-        }
-    }
+ICSGenerator.prototype.formatStartTime = function(startTime) {
+    // Strip encoded colon (i.e. %3A) from HTML5 timepicker
+    var startTime = startTime.replace(/%3A/, '');
 
-    return time;
+    // Add seconds
+    startTime += '00';
+
+    return startTime;
 };
 
-ICSGenerator.prototype.getStartTimeMinutes = function(appointment) {
-    var start = appointment.timeSlot.search(':');
-    var minutes = appointment.timeSlot.substring(start+1, start+3);
-
-    return minutes;
+ICSGenerator.prototype.setEventStart = function(startDate, startTime) {
+    var date = this.formatStartDate(startDate);
+    var time = this.formatStartTime(startTime);
+    this.eventStart = "DTSTART;VALUE='DATE-TIME':" + date + 'T' + time;
+    return this.eventStart;
 };
 
-ICSGenerator.prototype.formatDTStart = function(appointment) {
-    var date = this.getStartTimeDate(appointment);
-    var hours = this.getStartTimeHour(appointment);
-    var minutes = this.getStartTimeMinutes(appointment);
-    var result = "DTSTART;VALUE='DATE-TIME':" + date + 'T' + hours + minutes + '00';
+// ICSGenerator.prototype.formatDTEnd = function(appointment) {
 
-    return result;
-};
-
-ICSGenerator.prototype.formatDTEnd = function(appointment) {
-    var date = this.getStartTimeDate(appointment);
-    var hours = parseInt(this.getStartTimeHour(appointment));
-    var minutes = parseInt(this.getStartTimeMinutes(appointment));
-
-    if(minutes > 29) {
-        minutes -= 30;
-        hours += 1;
-    } else {
-        minutes += 30;
-    }
-    minutes = String(minutes);
-    if(hours.length === 1) {
-        hours = '0' + hours;
-    }
-    if(minutes.length === 1) {
-        minutes = '0' + minutes;
-    }
-    var result = "DTEND;VALUE='DATE-TIME':" + date + 'T' + hours + minutes + '00';
+//     var result = "DTEND;VALUE='DATE-TIME':" + date + 'T' + hours + minutes + '00';
     
-    return result;        
-};
+//     return result;           
+// };
 
-ICSGenerator.prototype.setICS = function(appointment) {
+ICSGenerator.prototype.setICS = function(eventStart) {
     var file = [];
     file.push(this.beginFile());
-    file.push(this.formatDTStart(appointment));
-    file.push(this.formatDTEnd(appointment));
-    file.push(this.endFile(appointment));
+    file.push(eventStart);
+    //file.push(this.formatDTEnd(appointment));
+    file.push(this.endFile());
     file = file.join("\n\r");
 
     return file;
