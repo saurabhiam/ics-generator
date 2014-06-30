@@ -5,10 +5,10 @@ describe("ICSGenerator", function() {
   });
 
   it("returns false unless an options object is passed", function() {
-    expect(ics.initOptions(1)).toBe(false);
-    expect(ics.initOptions('abc')).toBe(false);
-    expect(ics.initOptions(function(){})).toBe(false);
-    expect(ics.initOptions({})).toBeTruthy;
+    expect(ics.init(1)).toBe(false);
+    expect(ics.init('abc')).toBe(false);
+    expect(ics.init(function(){})).toBe(false);
+    expect(ics.init({})).toBeTruthy;
   });
 
   it("sets options if options are passed", function() {
@@ -22,7 +22,7 @@ describe("ICSGenerator", function() {
   });
 
   it("begins an ICS file", function() {
-    var output = "BEGIN:VCALENDAR\n\rVERSION:2.0\n\rPRODID:-//Apple Inc.//Mac OS X 10.8.2//EN\n\rCALSCALE:GREGORIAN\n\rBEGIN:VEVENT";
+    var output = "BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Apple Inc.//Mac OS X 10.8.2//EN\r\nCALSCALE:GREGORIAN\r\nBEGIN:VEVENT";
     expect(ics.beginFile()).toBe(output);
   });
 
@@ -41,7 +41,7 @@ describe("ICSGenerator", function() {
   });
 
   it("ends an ICS file", function() {
-    var output = "END:VEVENT\n\rEND:VCALENDAR"
+    var output = "END:VEVENT\r\nEND:VCALENDAR"
     expect(ics.endFile()).toBe(output);
   });
 
@@ -59,7 +59,7 @@ describe("ICSGenerator", function() {
     // expected.push('DESCRIPTION:A description');
     expected.push('END:VEVENT');
     expected.push('END:VCALENDAR');
-    expected = expected.join("\n\r");
+    expected = expected.join("\r\n");
 
     expect(ics.setICS("DTSTART;VALUE='DATE-TIME':20140420T210100")).toBe(expected);
 

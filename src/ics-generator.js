@@ -1,95 +1,71 @@
-var ICSGenerator = function(startDate, startTime, options) {
-
-    this.initOptions(options);
-
-    if (startDate && startTime) {
-        this.setEventStart(startDate, startTime);
-    }
-
-    console.log(this.setICS(this.eventStart));
-
-    this.setICS(this.eventStart);
-
-
-
+var ICSGenerator = function(options) {
+    this._init(options);
 };
 
-ICSGenerator.prototype.initOptions = function(options) {
-
-    if (typeof options === 'object') {
-        this.setOptions(options);
-        return;
-    }
-    return false;
+ICSGenerator.prototype._init = function(options) {
+    this.startDate = options.startDate;
+    this.summary = options.summary || '';
+    this.description = options.description || '';
+    this.location = options.location || '';
 };
 
-ICSGenerator.prototype.setOptions = function(options) {
-    this.options = options;
-    this.options.summary = options.summary || '';
-    this.options.description = options.description || '';
-    return this.options;
+ICSGenerator.prototype._getStart = function() {
+    var result = 'DTSTART:';
+    var year, month, date, hours, minutes, seconds;
+    var d = new Date(this.startDate);
+    
+    year = d.getFullYear();
+
+    // Month is btwn 1-12, not 0-11
+    month = String(d.getMonth() + 1);
+    if (month.length == 1) { month = '0' + month; }
+
+    date = String(d.getDate());
+    if (date.length == 1) { date = '0' + date; }
+
+    hours = '00';
+    minutes = '00';
+    seconds = '00';
+
+    result += year + month + date + 'T' + hours + minutes + seconds;
+
+    return result;
 };
 
-ICSGenerator.prototype.beginFile = function() {
-    var file = [];
+ICSGenerator.prototype._getSummary = function() {
+    var summary = 'SUMMARY:' + this.summary;
+    return summary;
+};
+
+ICSGenerator.prototype._getDescription = function() {
+    var description = 'DESCRIPTION:' + this.description;
+    return description;
+};
+
+ICSGenerator.prototype._getLocation = function() {
+    var loc = 'LOCATION:' + this.location;
+    return loc;
+};
+
+ICSGenerator.prototype.generateEvent = function() {
+    var file = []
+    ,   joinedFile = '';
+    var summary = this._getSummary();
+    var description = this._getDescription();
+    var loc = this._getLocation();
+    var start = this._getStart();
+
     file.push('BEGIN:VCALENDAR');
     file.push('VERSION:2.0');
     file.push('PRODID:-//Apple Inc.//Mac OS X 10.8.2//EN');
-    file.push('CALSCALE:GREGORIAN');
     file.push('BEGIN:VEVENT');
-    
-    file = file.join("\n\r");
+    file.push(start);
+    file.push(summary);
+    file.push(description);
+    file.push(loc);
+    file.push('END:VEVENT');
+    file.push('END:VCALENDAR');
+    joinedFile = file.join("\n\r");
 
-    return file;
-};
-
-ICSGenerator.prototype.endFile = function() {
-    var arr = [];
-    // arr.push('SUMMARY:' + this.options.summary);
-    // arr.push('DESCRIPTION:' + this.options.description);
-    arr.push('END:VEVENT');
-    arr.push('END:VCALENDAR');
-
-    arr = arr.join("\n\r");
-
-    return arr;
-};
-
-ICSGenerator.prototype.formatStartDate = function(startDate) {
-    return startDate.replace(/-/g, '');
-};
-
-ICSGenerator.prototype.formatStartTime = function(startTime) {
-    // Strip encoded colon (i.e. %3A) from HTML5 timepicker
-    var startTime = startTime.replace(/%3A/, '');
-
-    // Add seconds
-    startTime += '00';
-
-    return startTime;
-};
-
-ICSGenerator.prototype.setEventStart = function(startDate, startTime) {
-    var date = this.formatStartDate(startDate);
-    var time = this.formatStartTime(startTime);
-    this.eventStart = "DTSTART;VALUE='DATE-TIME':" + date + 'T' + time;
-    return this.eventStart;
-};
-
-// ICSGenerator.prototype.formatDTEnd = function(appointment) {
-
-//     var result = "DTEND;VALUE='DATE-TIME':" + date + 'T' + hours + minutes + '00';
-    
-//     return result;           
-// };
-
-ICSGenerator.prototype.setICS = function(eventStart) {
-    var file = [];
-    file.push(this.beginFile());
-    file.push(eventStart);
-    //file.push(this.formatDTEnd(appointment));
-    file.push(this.endFile());
-    file = file.join("\n\r");
-
-    return file;
+    return joinedFile;
 };
